@@ -1,0 +1,4 @@
+dist
+coverage
+pnpm-lock.yaml
+src/catalog/model-index.snapshot.ts
