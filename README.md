@@ -15,7 +15,7 @@ It makes no network calls and imports no provider SDK. You pass the model call i
 npm install @jovandyaz/llm-router
 ```
 
-ESM only, Node.js 20 or later. Runtime dependencies: `zod` and `gpt-tokenizer`.
+ESM and CommonJS, Node.js 20 or later. Runtime dependencies: `zod` and `gpt-tokenizer`.
 
 ## Usage
 
