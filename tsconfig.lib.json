@@ -1,8 +1,0 @@
-{
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "outDir": "../../dist/packages/ai-gateway"
-  },
-  "include": ["src/**/*.ts"],
-  "exclude": ["src/**/*.test.ts", "src/**/*.spec.ts"]
-}

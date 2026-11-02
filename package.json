@@ -1,0 +1,74 @@
+{
+  "name": "@jovandyaz/ai-gateway",
+  "version": "0.1.0",
+  "description": "Framework-free LLM plumbing: model catalog with pricing and context windows, provider fallback chain with cooldowns, prompt-injection guard and token estimator.",
+  "keywords": [
+    "llm",
+    "ai",
+    "model-catalog",
+    "pricing",
+    "fallback",
+    "circuit-breaker",
+    "prompt-injection",
+    "tokens",
+    "openrouter",
+    "models.dev"
+  ],
+  "homepage": "https://github.com/jovandyaz/ai-gateway#readme",
+  "bugs": {
+    "url": "https://github.com/jovandyaz/ai-gateway/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jovandyaz/ai-gateway.git"
+  },
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "packageManager": "pnpm@10.34.5+sha512.a4ee05f2f73658255bd6a89859c065a45c28a57daefae2c893a168ee2b73168c37b91e83e57ea67654ad03f03031746430e8bce38e362e042605fb8abc80192e",
+  "scripts": {
+    "build": "tsdown",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "snapshot:refresh": "tsx scripts/refresh-snapshot.ts",
+    "changeset": "changeset",
+    "release": "changeset publish",
+    "prepack": "pnpm run build"
+  },
+  "dependencies": {
+    "gpt-tokenizer": "^3.4.0",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "0.18.5",
+    "@changesets/cli": "3.0.3",
+    "@eslint/js": "10.0.1",
+    "@types/node": "24.19.2",
+    "eslint": "10.13.0",
+    "prettier": "3.9.10",
+    "publint": "0.3.25",
+    "tsdown": "0.23.2",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.72.0",
+    "vitest": "4.1.12"
+  }
+}
