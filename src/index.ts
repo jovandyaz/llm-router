@@ -2,6 +2,8 @@ export type { GatewayLogger } from './logger';
 export {
   detectPromptInjection,
   MAX_GUARD_INPUT_CHARS,
+  type InjectionSpan,
+  type PromptGuardResult,
 } from './guard/prompt-guard';
 export {
   AI_INPUT_DISPOSITION,
