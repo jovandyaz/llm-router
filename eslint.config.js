@@ -35,7 +35,7 @@ export default defineConfig([
             {
               group: ['@nestjs/*', 'ai', '@ai-sdk/*'],
               message:
-                'ai-gateway stays free of frameworks and SDKs; callers pass the model call in as a function.',
+                'llm-router stays free of frameworks and SDKs; callers pass the model call in as a function.',
             },
           ],
         },

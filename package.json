@@ -1,9 +1,12 @@
 {
-  "name": "@jovandyaz/ai-gateway",
+  "name": "@jovandyaz/llm-router",
   "version": "0.1.0",
-  "description": "Framework-free LLM plumbing: model catalog with pricing and context windows, provider fallback chain with cooldowns, prompt-injection guard and token estimator.",
+  "description": "In-process LLM router: provider fallback chain with cooldowns that never switches models mid-stream, model catalog with pricing and context windows, prompt-injection guard and token estimator.",
   "keywords": [
     "llm",
+    "llm-router",
+    "router",
+    "failover",
     "ai",
     "model-catalog",
     "pricing",
@@ -14,13 +17,13 @@
     "openrouter",
     "models.dev"
   ],
-  "homepage": "https://github.com/jovandyaz/ai-gateway#readme",
+  "homepage": "https://github.com/jovandyaz/llm-router#readme",
   "bugs": {
-    "url": "https://github.com/jovandyaz/ai-gateway/issues"
+    "url": "https://github.com/jovandyaz/llm-router/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jovandyaz/ai-gateway.git"
+    "url": "git+https://github.com/jovandyaz/llm-router.git"
   },
   "license": "MIT",
   "type": "module",
