@@ -36,7 +36,7 @@ jobs:
       - run: pnpm test
       - run: pnpm build
       - run: pnpm exec publint
-      - run: pnpm exec attw --pack . --profile esm-only
+      - run: pnpm exec attw --pack .
 
   node-compat:
     name: Test on Node ${{ matrix.node }}
