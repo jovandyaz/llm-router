@@ -174,7 +174,7 @@ pnpm lint && pnpm typecheck && pnpm test && pnpm build
 pnpm snapshot:refresh
 ```
 
-`pnpm snapshot:refresh` re-reads models.dev and OpenRouter and rewrites `src/catalog/model-index.snapshot.ts`. It refuses to write when models.dev rejects an entry, when OpenRouter pagination stops early, or when a provider would be left with no supported, priced model. A weekly workflow runs it and opens a pull request when the models changed. Releases go through [Changesets](https://github.com/changesets/changesets): add a changeset with `pnpm changeset`.
+`pnpm snapshot:refresh` re-reads models.dev and OpenRouter and rewrites `src/catalog/model-index.snapshot.ts`. It refuses to write when models.dev rejects an entry, when OpenRouter pagination stops early, or when a provider would be left with no supported, priced model. A weekly workflow runs it and opens a pull request when the models changed. Releases go through [Changesets](https://github.com/changesets/changesets): add a changeset with `pnpm changeset`. While the package is 0.x, a snapshot refresh ships as a minor version: models disappear and new ones change what a family or cost tier resolves to, so a `^0.1.0` range never picks one up silently.
 
 ## License
 
