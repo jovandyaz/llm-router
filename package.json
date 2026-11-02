@@ -1,6 +1,6 @@
 {
   "name": "@jovandyaz/llm-router",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "In-process LLM router: provider fallback chain with cooldowns that never switches models mid-stream, model catalog with pricing and context windows, prompt-injection guard and token estimator.",
   "keywords": [
     "llm",
