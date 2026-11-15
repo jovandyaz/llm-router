@@ -20,5 +20,6 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["src", "scripts", "*.config.ts"]
+  "include": ["src", "scripts", "test", "*.config.ts"],
+  "exclude": ["test/consumers/cjs-node10"]
 }
