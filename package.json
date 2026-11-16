@@ -51,10 +51,13 @@
     "./chain": "./dist/chain.mjs",
     "./guard": "./dist/guard.mjs",
     "./tokens": "./dist/tokens.mjs",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./model-index.json": "./data/model-index.json",
+    "./model-index.schema.json": "./data/model-index.schema.json"
   },
   "files": [
-    "dist"
+    "dist",
+    "data"
   ],
   "engines": {
     "node": ">=22.12"
@@ -72,6 +75,7 @@
     "test": "vitest run",
     "test:consumers": "vitest run --config vitest.consumers.config.ts",
     "snapshot:refresh": "tsx scripts/refresh-snapshot.ts",
+    "schema:write": "tsx scripts/write-model-index-schema.ts",
     "changeset": "changeset",
     "release": "changeset publish",
     "prepack": "pnpm run build"

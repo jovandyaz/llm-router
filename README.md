@@ -44,7 +44,24 @@ const costUsd = pricing
   : 0;
 ```
 
-Model ids are `provider:model`, where the provider is `anthropic`, `openai`, `google` or `openrouter` (for example `openrouter:deepseek/deepseek-v3.2`). `MODEL_INDEX_SNAPSHOT_DATE` tells you when the bundled snapshot was taken. To serve fresher data, fetch models.dev and OpenRouter yourself, normalize each entry with `fromModelsDev` and `fromOpenRouter`, and build a `ModelIndexCatalog` from the rows.
+Model ids are `provider:model`, where the provider is `anthropic`, `openai`, `google` or `openrouter` (for example `openrouter:deepseek/deepseek-v3.2`). `MODEL_INDEX_SNAPSHOT_DATE` tells you when the bundled snapshot was taken. The snapshot is `data/model-index.json`, a versioned document (`schemaVersion`, `generatedAt`, `sources`, `models`) validated against `data/model-index.schema.json`; both are exported as `@jovandyaz/llm-router/model-index.json` and `/model-index.schema.json` for tools in other languages.
+
+For fresher data without upgrading, call `fetchModelIndex()` yourself. It downloads the index of the latest published release from jsDelivr (or the `url` you pass), validates it, and throws on any failure instead of returning partial data. The package never fetches on its own:
+
+```ts
+import {
+  fetchModelIndex,
+  MODEL_INDEX_SNAPSHOT,
+  ModelIndexCatalog,
+} from '@jovandyaz/llm-router/catalog';
+
+const rows = await fetchModelIndex({ timeoutMs: 5_000 })
+  .then((document) => document.models)
+  .catch(() => MODEL_INDEX_SNAPSHOT);
+const catalog = new ModelIndexCatalog(rows);
+```
+
+To build your own index, fetch models.dev and OpenRouter, normalize each entry with `fromModelsDev` and `fromOpenRouter`, and build a `ModelIndexCatalog` from the rows.
 
 When a cache rate is missing, `computeTokenCostUsd` falls back to 0.1x the input rate for cache reads and 1.25x for cache writes.
 
@@ -155,18 +172,18 @@ Counts use `gpt-tokenizer`'s default `o200k_base` encoding, in 4,000-character c
 ## What it does not do
 
 - No framework and no SDK. Nothing here depends on NestJS, Express, the Vercel AI SDK or any provider client; the chain helpers take the model call as a function, and logging goes through the `{ warn, error }` interface you pass in.
-- No network access. The catalog reads the rows you give it; keeping them fresh is your job, or rely on the bundled snapshot.
+- No network access unless you call `fetchModelIndex`. The catalog reads the rows you give it; keeping them fresh is your job, or rely on the bundled snapshot.
 - No model selection policy, retries with backoff, persistence or quota tracking. Cooldown state lives in memory, per process.
 
 ## API
 
-| Subpath    | Exports                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `/catalog` | `ModelIndexCatalog`, `MODEL_INDEX_SNAPSHOT`, `MODEL_INDEX_SNAPSHOT_DATE`, `MODEL_CATALOG` (a `Symbol` for dependency injection of a `ModelCatalog`), `fromModelsDev`, `enrichmentFromModelsDev`, `fromOpenRouter`, `deriveCanonical`, `computeTokenCostUsd`, `TRANSCRIPTION_PRICES`, `INDEX_PROVIDERS`, `MODELS_DEV_PROVIDERS`, `INDEX_SOURCES`, `MODEL_STATUSES`, `TOKENS_PER_MILLION`, `MAX_INT32`                                                                                       |
-| `/chain`   | `executeWithChain`, `streamWithChain`, `resolveChainCandidates`, `ProviderCooldownTracker`, `cooldownKeyOf`, `providerOf`, `isAbortError`, `isOverloadedError`, `OPENROUTER_PROVIDER`                                                                                                                                                                                                                                                                                                      |
-| `/guard`   | `detectPromptInjection`, `detectAiInput`, `locateInjectionSpans`, `sanitizeContent`, `MAX_GUARD_INPUT_CHARS`, `MAX_GUARD_SCAN_CHARS`, `AI_INPUT_DISPOSITION`                                                                                                                                                                                                                                                                                                                               |
-| `/tokens`  | `estimateTokenCount`                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| Types      | `RouterLogger`, `ModelCatalog`, `ModelPricing`, `ModelContextWindow`, `IndexedModel`, `IndexedReasoning`, `IndexProvider`, `IndexSource`, `ModelStatus`, `ModelsDevEnrichment`, `OpenRouterModelInput`, `TokenCostInput`, `ChainScope`, `ChainContext`, `StreamChainContext`, `ChainAttemptInfo`, `ChainResolutionInput`, `CooldownConfig`, `ProviderCooldown`, `ProviderHealthSnapshot`, `AiInputDetection`, `AiInputDisposition`, `AiInputSurface`, `PromptGuardResult`, `InjectionSpan` |
+| Subpath    | Exports                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/catalog` | `ModelIndexCatalog`, `MODEL_INDEX_SNAPSHOT`, `MODEL_INDEX_SNAPSHOT_DATE`, `fetchModelIndex`, `parseModelIndexDocument`, `modelIndexDocumentSchema`, `DEFAULT_MODEL_INDEX_URL`, `MODEL_INDEX_SCHEMA_VERSION`, `MODEL_CATALOG` (a `Symbol` for dependency injection of a `ModelCatalog`), `fromModelsDev`, `enrichmentFromModelsDev`, `fromOpenRouter`, `deriveCanonical`, `computeTokenCostUsd`, `TRANSCRIPTION_PRICES`, `INDEX_PROVIDERS`, `MODELS_DEV_PROVIDERS`, `INDEX_SOURCES`, `MODEL_STATUSES`, `TOKENS_PER_MILLION`, `MAX_INT32`    |
+| `/chain`   | `executeWithChain`, `streamWithChain`, `resolveChainCandidates`, `ProviderCooldownTracker`, `cooldownKeyOf`, `providerOf`, `isAbortError`, `isOverloadedError`, `OPENROUTER_PROVIDER`                                                                                                                                                                                                                                                                                                                                                      |
+| `/guard`   | `detectPromptInjection`, `detectAiInput`, `locateInjectionSpans`, `sanitizeContent`, `MAX_GUARD_INPUT_CHARS`, `MAX_GUARD_SCAN_CHARS`, `AI_INPUT_DISPOSITION`                                                                                                                                                                                                                                                                                                                                                                               |
+| `/tokens`  | `estimateTokenCount`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| Types      | `RouterLogger`, `ModelCatalog`, `ModelPricing`, `ModelContextWindow`, `IndexedModel`, `IndexedReasoning`, `IndexProvider`, `IndexSource`, `ModelStatus`, `ModelsDevEnrichment`, `OpenRouterModelInput`, `ModelIndexDocument`, `FetchModelIndexOptions`, `TokenCostInput`, `ChainScope`, `ChainContext`, `StreamChainContext`, `ChainAttemptInfo`, `ChainResolutionInput`, `CooldownConfig`, `ProviderCooldown`, `ProviderHealthSnapshot`, `AiInputDetection`, `AiInputDisposition`, `AiInputSurface`, `PromptGuardResult`, `InjectionSpan` |
 
 ## Development
 
@@ -176,7 +193,7 @@ pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:consumers
 pnpm snapshot:refresh
 ```
 
-`pnpm snapshot:refresh` re-reads models.dev and OpenRouter and rewrites `src/catalog/model-index.snapshot.ts`. It refuses to write when models.dev rejects an entry, when OpenRouter pagination stops early, or when a provider would be left with no supported, priced model. A weekly workflow runs it and opens a pull request when the models changed. Releases go through [Changesets](https://github.com/changesets/changesets): add a changeset with `pnpm changeset`. While the package is 0.x, a snapshot refresh ships as a minor version: models disappear and new ones change what a family or cost tier resolves to, so a `^0.1.0` range never picks one up silently.
+`pnpm snapshot:refresh` re-reads models.dev and OpenRouter and rewrites `data/model-index.json`; after changing the document schema, run `pnpm schema:write`. It refuses to write when models.dev rejects an entry, when OpenRouter pagination stops early, or when a provider would be left with no supported, priced model. A weekly workflow runs it and opens a pull request when the models changed. Releases go through [Changesets](https://github.com/changesets/changesets): add a changeset with `pnpm changeset`. While the package is 0.x, a snapshot refresh ships as a minor version: models disappear and new ones change what a family or cost tier resolves to, so a `^0.1.0` range never picks one up silently.
 
 ## License
 

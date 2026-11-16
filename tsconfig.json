@@ -18,7 +18,8 @@
     "erasableSyntaxOnly": true,
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
-    "noEmit": true
+    "noEmit": true,
+    "resolveJsonModule": true
   },
   "include": ["src", "scripts", "test", "*.config.ts"],
   "exclude": ["test/consumers/cjs-node10"]

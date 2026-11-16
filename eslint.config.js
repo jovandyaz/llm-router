@@ -3,7 +3,7 @@ import { defineConfig, globalIgnores } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig([
-  globalIgnores(['dist', 'coverage', 'src/catalog/model-index.snapshot.ts']),
+  globalIgnores(['dist', 'coverage']),
   {
     files: ['**/*.{js,ts}'],
     extends: [js.configs.recommended, tseslint.configs.strict],

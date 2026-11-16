@@ -29,8 +29,17 @@ export {
 } from './normalize-openrouter';
 export { ModelIndexCatalog } from './model-index-catalog';
 export {
+  MODEL_INDEX_SCHEMA_VERSION,
   MODEL_INDEX_SNAPSHOT,
   MODEL_INDEX_SNAPSHOT_DATE,
-} from './model-index.snapshot';
+  modelIndexDocumentSchema,
+  parseModelIndexDocument,
+  type ModelIndexDocument,
+} from './model-index-document';
+export {
+  DEFAULT_MODEL_INDEX_URL,
+  fetchModelIndex,
+  type FetchModelIndexOptions,
+} from './fetch-model-index';
 export { TRANSCRIPTION_PRICES } from './transcription-prices';
 export { computeTokenCostUsd, type TokenCostInput } from './compute-token-cost';
