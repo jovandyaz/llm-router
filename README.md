@@ -193,7 +193,9 @@ pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:consumers
 pnpm snapshot:refresh
 ```
 
-`pnpm snapshot:refresh` re-reads models.dev and OpenRouter and rewrites `data/model-index.json`; after changing the document schema, run `pnpm schema:write`. It refuses to write when models.dev rejects an entry, when OpenRouter pagination stops early, or when a provider would be left with no supported, priced model. A weekly workflow runs it and opens a pull request when the models changed. Releases go through [Changesets](https://github.com/changesets/changesets): add a changeset with `pnpm changeset`. While the package is 0.x, a snapshot refresh ships as a minor version: models disappear and new ones change what a family or cost tier resolves to, so a `^0.1.0` range never picks one up silently.
+`pnpm snapshot:refresh` re-reads models.dev and OpenRouter and rewrites `data/model-index.json`; after changing the document schema, run `pnpm schema:write`. It refuses to write when models.dev rejects an entry, when OpenRouter pagination stops early, or when a provider would be left with no supported, priced model. When a model row changed (a new `generatedAt` alone does not count), it also writes a patch changeset, so a refresh reaches every `^0.x` range once released; otherwise it writes nothing. A weekly workflow runs it and opens a pull request with both files. Releases go through [Changesets](https://github.com/changesets/changesets): add a changeset with `pnpm changeset`.
+
+The refresh and release workflows open their pull requests with a GitHub App token, because pull requests opened with `GITHUB_TOKEN` do not start CI without a manual approval. They need the App's client ID in the `RELEASE_APP_CLIENT_ID` repository variable and its private key in the `RELEASE_APP_PRIVATE_KEY` secret; the App needs read and write access to contents and pull requests.
 
 ## License
 
