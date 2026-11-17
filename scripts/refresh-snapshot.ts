@@ -1,4 +1,4 @@
-import { rename, writeFile } from 'node:fs/promises';
+import { readFile, rename, writeFile } from 'node:fs/promises';
 import { relative, resolve } from 'node:path';
 
 import { z } from 'zod';
@@ -15,12 +15,15 @@ import {
   type ModelsDevEnrichment,
   type OpenRouterModelInput,
   MODEL_INDEX_SCHEMA_VERSION,
+  parseModelIndexDocument,
   type ModelIndexDocument,
 } from '../src/catalog';
 import { renderModelIndexDocument } from '../src/catalog/model-index-document';
+import { changesetFor, modelsChanged } from './refresh-changes';
 
 const SNAPSHOT_PATH = resolve(import.meta.dirname, '../data/model-index.json');
 const SNAPSHOT_SOURCES = ['models.dev', 'openrouter'];
+const CHANGESET_DIR = resolve(import.meta.dirname, '../.changeset');
 
 const MODELS_DEV_URL = 'https://models.dev/api.json';
 const OPENROUTER_MODELS_URL = 'https://openrouter.ai/api/v1/models';
@@ -302,6 +305,19 @@ function byId(a: IndexedModel, b: IndexedModel): number {
   return a.id < b.id ? -1 : 1;
 }
 
+async function readCurrentDocument(): Promise<ModelIndexDocument | null> {
+  try {
+    return parseModelIndexDocument(
+      JSON.parse(await readFile(SNAPSHOT_PATH, 'utf8'))
+    );
+  } catch (error: unknown) {
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+      return null;
+    }
+    throw error;
+  }
+}
+
 async function main(): Promise<void> {
   const [modelsDev, openRouter] = await Promise.all([
     readModelsDev(),
@@ -324,21 +340,33 @@ async function main(): Promise<void> {
     return;
   }
 
-  const tempPath = `${SNAPSHOT_PATH}.tmp`;
   const document: ModelIndexDocument = {
     schemaVersion: MODEL_INDEX_SCHEMA_VERSION,
     generatedAt: new Date().toISOString().slice(0, 10),
     sources: SNAPSHOT_SOURCES,
     models: [...catalog.all()].sort(byId),
   };
+  if (!modelsChanged(await readCurrentDocument(), document)) {
+    console.log(
+      'No model changed; leaving the snapshot and changesets as they are'
+    );
+    return;
+  }
+
+  const tempPath = `${SNAPSHOT_PATH}.tmp`;
   await writeFile(tempPath, renderModelIndexDocument(document));
   await rename(tempPath, SNAPSHOT_PATH);
+  const changeset = changesetFor(document);
+  await writeFile(
+    resolve(CHANGESET_DIR, changeset.fileName),
+    changeset.content
+  );
   const perProvider = INDEX_PROVIDERS.map(
     (provider) =>
       `${provider} ${catalog.all().filter((row) => row.provider === provider).length}`
   ).join(', ');
   console.log(
-    `Wrote ${catalog.size} models (${perProvider}) to ${relative(process.cwd(), SNAPSHOT_PATH)}`
+    `Wrote ${catalog.size} models (${perProvider}) to ${relative(process.cwd(), SNAPSHOT_PATH)} and .changeset/${changeset.fileName}`
   );
 }
 

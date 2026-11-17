@@ -17,10 +17,19 @@ jobs:
     name: Refresh snapshot
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # Pull requests opened with GITHUB_TOKEN wait for a manual "Approve workflows to run";
+    # a GitHub App token lets CI start on its own.
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
     steps:
+      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        id: app-token
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
@@ -35,18 +44,15 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm snapshot:refresh
 
-      - name: Discard a change that only moves the snapshot date
-        run: |
-          if git diff --quiet -I '^  "generatedAt"' -- data/model-index.json; then
-            git checkout -- data/model-index.json
-          fi
-
       - run: pnpm typecheck
       - run: pnpm test
 
       - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
-          add-paths: data/model-index.json
+          token: ${{ steps.app-token.outputs.token }}
+          add-paths: |
+            data/model-index.json
+            .changeset/refresh-model-index-*.md
           branch: chore/refresh-model-snapshot
           delete-branch: true
           sign-commits: true
@@ -55,4 +61,4 @@ jobs:
           body: |
             Weekly re-read of models.dev and OpenRouter `/api/v1/models` by `pnpm snapshot:refresh`.
 
-            Typecheck and tests passed against the new snapshot in the workflow run. Add a changeset before merging if this should ship in a release.
+            Typecheck and tests passed against the new snapshot in the workflow run. The included changeset releases it as a patch once merged.
