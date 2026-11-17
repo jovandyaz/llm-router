@@ -18,8 +18,7 @@ import {
   parseModelIndexDocument,
   type ModelIndexDocument,
 } from '../src/catalog';
-import { renderModelIndexDocument } from '../src/catalog/model-index-document';
-import { changesetFor, modelsChanged } from './refresh-changes';
+import { prepareRefresh } from './refresh-changes';
 
 const SNAPSHOT_PATH = resolve(import.meta.dirname, '../data/model-index.json');
 const SNAPSHOT_SOURCES = ['models.dev', 'openrouter'];
@@ -346,7 +345,8 @@ async function main(): Promise<void> {
     sources: SNAPSHOT_SOURCES,
     models: [...catalog.all()].sort(byId),
   };
-  if (!modelsChanged(await readCurrentDocument(), document)) {
+  const prepared = prepareRefresh(await readCurrentDocument(), document);
+  if (prepared === null) {
     console.log(
       'No model changed; leaving the snapshot and changesets as they are'
     );
@@ -354,19 +354,18 @@ async function main(): Promise<void> {
   }
 
   const tempPath = `${SNAPSHOT_PATH}.tmp`;
-  await writeFile(tempPath, renderModelIndexDocument(document));
+  await writeFile(tempPath, prepared.json);
   await rename(tempPath, SNAPSHOT_PATH);
-  const changeset = changesetFor(document);
   await writeFile(
-    resolve(CHANGESET_DIR, changeset.fileName),
-    changeset.content
+    resolve(CHANGESET_DIR, prepared.changeset.fileName),
+    prepared.changeset.content
   );
   const perProvider = INDEX_PROVIDERS.map(
     (provider) =>
       `${provider} ${catalog.all().filter((row) => row.provider === provider).length}`
   ).join(', ');
   console.log(
-    `Wrote ${catalog.size} models (${perProvider}) to ${relative(process.cwd(), SNAPSHOT_PATH)} and .changeset/${changeset.fileName}`
+    `Wrote ${catalog.size} models (${perProvider}) to ${relative(process.cwd(), SNAPSHOT_PATH)} and .changeset/${prepared.changeset.fileName}`
   );
 }
 
