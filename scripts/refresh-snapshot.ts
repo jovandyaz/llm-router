@@ -14,7 +14,7 @@ import {
   type IndexedModel,
   type ModelsDevEnrichment,
   type OpenRouterModelInput,
-} from '../src/index';
+} from '../src/catalog';
 
 const SNAPSHOT_PATH = resolve(
   import.meta.dirname,

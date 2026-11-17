@@ -1,0 +1,5 @@
+{
+  "name": "cjs-node10-consumer",
+  "private": true,
+  "type": "commonjs"
+}
