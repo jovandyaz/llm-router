@@ -73,6 +73,40 @@ describe('fetchModelIndex', () => {
     expect(cancelled).toBe(true);
   });
 
+  it('keeps the HTTP error when the failed body is already locked', async () => {
+    const response = new Response('busy', { status: 503 });
+    response.body?.getReader();
+    await expect(
+      fetchModelIndex({ url: URL, fetch: async () => response })
+    ).rejects.toThrow(`${URL} failed: HTTP 503`);
+  });
+
+  it('keeps the HTTP error when the failed body has errored', async () => {
+    const body = new ReadableStream({
+      start(controller) {
+        controller.error(new Error('connection reset'));
+      },
+    });
+    await expect(
+      fetchModelIndex({
+        url: URL,
+        fetch: async () => new Response(body, { status: 503 }),
+      })
+    ).rejects.toThrow(`${URL} failed: HTTP 503`);
+  });
+
+  it('does not wait for a body cancel that never settles', async () => {
+    const body = new ReadableStream({
+      cancel: () => new Promise<void>(() => undefined),
+    });
+    await expect(
+      fetchModelIndex({
+        url: URL,
+        fetch: async () => new Response(body, { status: 503 }),
+      })
+    ).rejects.toThrow(`${URL} failed: HTTP 503`);
+  }, 1_000);
+
   it('throws when the body breaks the schema', async () => {
     await expect(
       fetchModelIndex({

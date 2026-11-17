@@ -43,8 +43,9 @@ export async function fetchModelIndex(
 
   const response = await fetchFn(url, { signal });
   if (!response.ok) {
-    // Release the connection now instead of leaving the unread body to garbage collection.
-    await response.body?.cancel();
+    // Release the connection instead of leaving the unread body to garbage collection. Best effort:
+    // not awaited and never thrown, so a locked, errored or stuck body cannot replace the HTTP error.
+    response.body?.cancel().catch(() => undefined);
     throw new Error(
       `Model index request to ${url} failed: HTTP ${response.status}`
     );
