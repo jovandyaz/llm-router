@@ -46,6 +46,24 @@ describe('model index document', () => {
     ).toBe(file);
   });
 
+  it('published JSON Schema allows fields it does not know', () => {
+    expect(renderModelIndexSchema()).not.toContain(
+      '"additionalProperties": false'
+    );
+  });
+
+  it('parses a document with an unknown field on a row and on the root', () => {
+    const document = snapshotDocument();
+    const [first, ...rest] = document.models as Record<string, unknown>[];
+    const parsed = parseModelIndexDocument({
+      ...document,
+      publisher: 'someone',
+      models: [{ ...first, tieredPricing: [] }, ...rest],
+    });
+    expect(parsed).not.toHaveProperty('publisher');
+    expect(parsed.models[0]).not.toHaveProperty('tieredPricing');
+  });
+
   it('rejects an unknown schemaVersion', () => {
     expect(() =>
       parseModelIndexDocument({ ...snapshotDocument(), schemaVersion: 2 })
@@ -68,7 +86,7 @@ describe('model index document', () => {
       readFileSync(resolve(DATA_DIR, 'model-index.schema.json'), 'utf8')
     );
     expect(renderModelIndexSchema()).toBe(
-      `${JSON.stringify(z.toJSONSchema(modelIndexDocumentSchema), null, 2)}\n`
+      `${JSON.stringify(z.toJSONSchema(modelIndexDocumentSchema, { io: 'input' }), null, 2)}\n`
     );
   });
 });
