@@ -1,5 +1,12 @@
 # @jovandyaz/llm-router
 
+## 0.2.1
+
+### Patch Changes
+
+- 3c9dfd4: `fetchModelIndex` releases the response body before throwing on a non-2xx status, and its default URL now follows the package's own major.minor. The published `model-index.schema.json` accepts fields it does not know, matching `parseModelIndexDocument`: adding a field keeps `schemaVersion`; removing, renaming or retyping one bumps it. The snapshot refresh validates the new index before writing it.
+- b0cef5c: `DEFAULT_MODEL_INDEX_URL` is typed as a jsDelivr URL template again instead of a bare `string`, and a prerelease version points it at its own exact version, since jsDelivr cannot resolve the minor line until a stable release exists.
+
 ## 0.2.0
 
 ### Minor Changes
