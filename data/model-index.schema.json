@@ -1,0 +1,256 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+    },
+    "sources": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "models": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "provider": {
+            "type": "string",
+            "enum": [
+              "anthropic",
+              "openai",
+              "google",
+              "openrouter"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "family": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "releasedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "beta",
+              "alpha",
+              "deprecated"
+            ]
+          },
+          "toolCall": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "structuredOutput": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "inputModalities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "outputModalities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "inputCostPerToken": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "outputCostPerToken": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cacheReadCostPerToken": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cacheWriteCostPerToken": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "maxInputTokens": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2147483647
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "maxOutputTokens": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2147483647
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reasoning": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "levels": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "mandatory": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "levels",
+                  "mandatory"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "canonical": {
+            "type": "string",
+            "minLength": 1
+          },
+          "openWeights": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "retiresAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "models_dev",
+              "openrouter"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "provider",
+          "name",
+          "family",
+          "releasedAt",
+          "status",
+          "toolCall",
+          "structuredOutput",
+          "inputModalities",
+          "outputModalities",
+          "inputCostPerToken",
+          "outputCostPerToken",
+          "cacheReadCostPerToken",
+          "cacheWriteCostPerToken",
+          "maxInputTokens",
+          "maxOutputTokens",
+          "reasoning",
+          "canonical",
+          "openWeights",
+          "retiresAt",
+          "source"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "generatedAt",
+    "sources",
+    "models"
+  ],
+  "additionalProperties": false
+}

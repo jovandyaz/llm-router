@@ -37,8 +37,8 @@ jobs:
 
       - name: Discard a change that only moves the snapshot date
         run: |
-          if git diff --quiet -I '^export const MODEL_INDEX_SNAPSHOT_DATE' -- src/catalog/model-index.snapshot.ts; then
-            git checkout -- src/catalog/model-index.snapshot.ts
+          if git diff --quiet -I '^  "generatedAt"' -- data/model-index.json; then
+            git checkout -- data/model-index.json
           fi
 
       - run: pnpm typecheck
@@ -46,7 +46,7 @@ jobs:
 
       - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
-          add-paths: src/catalog/model-index.snapshot.ts
+          add-paths: data/model-index.json
           branch: chore/refresh-model-snapshot
           delete-branch: true
           sign-commits: true

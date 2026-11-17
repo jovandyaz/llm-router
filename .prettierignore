@@ -1,4 +1,5 @@
 dist
 coverage
 pnpm-lock.yaml
-src/catalog/model-index.snapshot.ts
+data/model-index.json
+data/model-index.schema.json

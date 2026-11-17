@@ -10,6 +10,11 @@ export default defineConfig({
   },
   platform: 'node',
   dts: true,
-  exports: true,
+  exports: {
+    customExports: {
+      './model-index.json': './data/model-index.json',
+      './model-index.schema.json': './data/model-index.schema.json',
+    },
+  },
   failOnWarn: true,
 });
