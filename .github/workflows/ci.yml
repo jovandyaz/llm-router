@@ -36,6 +36,7 @@ jobs:
       - run: pnpm test
       - run: pnpm build
       - run: pnpm test:consumers
+      - run: pnpm examples
       - run: pnpm exec publint
       - run: pnpm exec attw --pack . --profile esm-only
 

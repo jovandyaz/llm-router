@@ -100,7 +100,7 @@ const answer = await executeWithChain((model) => generate(model, prompt), {
 });
 ```
 
-`generate` and `hasCredentialsFor` are yours: call whatever SDK or HTTP client you use. A thrown error moves on to the next candidate and counts against that provider's cooldown; when the last candidate fails, its error is thrown. An `AbortError` is rethrown at once. `resolveChainCandidates` puts the primary first, drops models without credentials, then drops the ones in cooldown. Each filter is skipped when it would leave nothing, so a request always gets at least one attempt: with every credentialed model cooling down, you get the credentialed ones back. Pass `scope: 'same-family'` to keep fallbacks inside the primary's model family.
+`generate` and `hasCredentialsFor` are yours: call whatever SDK or HTTP client you use. With the AI SDK, pass `maxRetries: 0` to `generateText` so it does not retry an overloaded provider before the chain can fail over; [`examples/fallback-generate.ts`](examples/fallback-generate.ts) runs this against AI SDK 7. A thrown error moves on to the next candidate and counts against that provider's cooldown; when the last candidate fails, its error is thrown. An `AbortError` is rethrown at once. `resolveChainCandidates` puts the primary first, drops models without credentials, then drops the ones in cooldown. Each filter is skipped when it would leave nothing, so a request always gets at least one attempt: with every credentialed model cooling down, you get the credentialed ones back. Pass `scope: 'same-family'` to keep fallbacks inside the primary's model family.
 
 Cooldowns are tracked per provider for direct providers, whose models share one key and quota, and per model for OpenRouter, whose models fail independently (`cooldownKeyOf`).
 
@@ -108,14 +108,22 @@ Cooldowns are tracked per provider for direct providers, whose models share one 
 
 ```ts
 import { streamWithChain } from '@jovandyaz/llm-router/chain';
+import { streamText } from 'ai';
 
 const textStream = streamWithChain({
   candidates,
   cooldown,
   logger,
-  open: (model) => openStream(model, prompt, signal),
+  open: (model) =>
+    streamText({
+      model: languageModelFor(model),
+      prompt,
+      abortSignal: signal,
+      maxRetries: 0,
+      onError: () => undefined,
+    }),
   chunks: async function* (stream) {
-    for await (const part of stream) {
+    for await (const part of stream.stream) {
       if (part.type === 'error') {
         throw part.error;
       }
@@ -132,7 +140,7 @@ for await (const text of textStream) {
 }
 ```
 
-`open` must return the stream handle synchronously, the way AI SDK `streamText` does; connection errors surface when `chunks` starts reading. A candidate that fails before its first chunk falls through to the next one. After a chunk has been yielded, a failure propagates instead: the consumer already has partial output, so the model is never switched mid-stream. `onSettle` receives the last opened handle once the stream ends, which is where you read usage. `isEphemeralChunk` marks chunks, such as keep-alives, that should not commit the stream to a model, and `isFailureChunk` marks in-band error events so they count as a failure.
+`open` must return the stream handle synchronously, the way AI SDK `streamText` does; connection errors surface when `chunks` starts reading. `languageModelFor` is yours: map the model id to an AI SDK model. `chunks` iterates `stream`, not the deprecated `fullStream`; `onError: () => undefined` stops the AI SDK's default handler from logging errors the chain then recovers from. Any other client works the same way as long as `open` returns its handle synchronously. [`examples/fallback-stream.ts`](examples/fallback-stream.ts) runs it end to end. A candidate that fails before its first chunk falls through to the next one. After a chunk has been yielded, a failure propagates instead: the consumer already has partial output, so the model is never switched mid-stream. `onSettle` receives the last opened handle once the stream ends, which is where you read usage. `isEphemeralChunk` marks chunks, such as keep-alives, that should not commit the stream to a model, and `isFailureChunk` marks in-band error events so they count as a failure.
 
 ### Screen untrusted text
 
@@ -189,9 +197,11 @@ Counts use `gpt-tokenizer`'s default `o200k_base` encoding, in 4,000-character c
 
 ```sh
 pnpm install
-pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:consumers
+pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:consumers && pnpm examples
 pnpm snapshot:refresh
 ```
+
+`pnpm examples` type-checks and runs `examples/`, the README snippets wired to AI SDK 7 mock models (no API keys). It needs Node.js 22.18 or later, which runs TypeScript without a flag, and a prior `pnpm build`. `ai` is a dev dependency only, and `src/` may not import it. The examples assert values from the bundled snapshot, so a refresh that changes them fails CI until the README and examples are updated.
 
 `pnpm snapshot:refresh` re-reads models.dev and OpenRouter and rewrites `data/model-index.json`; after changing the document schema, run `pnpm schema:write`. It refuses to write when models.dev rejects an entry, when OpenRouter pagination stops early, or when a provider would be left with no supported, priced model. When a model row changed (a new `generatedAt` alone does not count), it also writes a patch changeset, so a refresh reaches every range on the current minor (for example `^0.2.0`) once released; otherwise it writes nothing. A weekly workflow runs it and opens a pull request with both files. Releases go through [Changesets](https://github.com/changesets/changesets): add a changeset with `pnpm changeset`.
 
