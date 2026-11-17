@@ -1,10 +1,14 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, expectTypeOf, it } from 'vitest';
 import { z } from 'zod';
 
-import { DEFAULT_MODEL_INDEX_URL, fetchModelIndex } from './fetch-model-index';
+import {
+  DEFAULT_MODEL_INDEX_URL,
+  fetchModelIndex,
+  releaseRangeOf,
+} from './fetch-model-index';
 
 const SNAPSHOT_JSON = readFileSync(
   resolve(import.meta.dirname, '../../data/model-index.json'),
@@ -49,6 +53,22 @@ describe('fetchModelIndex', () => {
     expect(DEFAULT_MODEL_INDEX_URL).toBe(
       `https://cdn.jsdelivr.net/npm/@jovandyaz/llm-router@${major}.${minor}/data/model-index.json`
     );
+  });
+
+  it('default URL keeps a jsDelivr URL type, not a bare string', () => {
+    expectTypeOf(DEFAULT_MODEL_INDEX_URL).not.toEqualTypeOf<string>();
+    expectTypeOf(
+      DEFAULT_MODEL_INDEX_URL
+    ).toExtend<`https://cdn.jsdelivr.net/npm/@jovandyaz/llm-router@${string}/data/model-index.json`>();
+  });
+
+  it('a stable version resolves to its minor line', () => {
+    expect(releaseRangeOf('0.2.1')).toBe('0.2');
+    expect(releaseRangeOf('1.4.0')).toBe('1.4');
+  });
+
+  it('a prerelease pins its exact version, since jsDelivr has no stable release on that line yet', () => {
+    expect(releaseRangeOf('0.3.0-next.0')).toBe('0.3.0-next.0');
   });
 
   it('throws on HTTP 503 naming the url and status', async () => {
