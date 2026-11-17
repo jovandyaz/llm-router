@@ -4,13 +4,21 @@ import {
   type ModelIndexDocument,
 } from './model-index-document';
 
-const RELEASE_LINE = version.split('.').slice(0, 2).join('.');
+/**
+ * The jsDelivr version range for a package version: the minor line (`0.2.1` → `0.2`) for a stable
+ * release, the exact version for a prerelease, whose line has no stable release to resolve to yet.
+ */
+export function releaseRangeOf(packageVersion: string): string {
+  return packageVersion.includes('-')
+    ? packageVersion
+    : packageVersion.split('.').slice(0, 2).join('.');
+}
 
 /**
  * The index of the latest published release on this package's minor line (e.g. `@0.2` resolves to
  * the newest 0.2.x), served by jsDelivr from npm. Follows the package version on its own.
  */
-export const DEFAULT_MODEL_INDEX_URL = `https://cdn.jsdelivr.net/npm/@jovandyaz/llm-router@${RELEASE_LINE}/data/model-index.json`;
+export const DEFAULT_MODEL_INDEX_URL: `https://cdn.jsdelivr.net/npm/@jovandyaz/llm-router@${string}/data/model-index.json` = `https://cdn.jsdelivr.net/npm/@jovandyaz/llm-router@${releaseRangeOf(version)}/data/model-index.json`;
 
 const DEFAULT_TIMEOUT_MS = 10_000;
 
