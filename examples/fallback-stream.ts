@@ -67,6 +67,8 @@ for await (const chunk of textStream) {
 }
 
 assert.equal(text, 'Hello world');
+assert.equal(models[PRIMARY].doStreamCalls.length, 1);
+assert.equal(models[FALLBACK].doStreamCalls.length, 1);
 assert.deepEqual(await settledUsage, {
   inputTokens: 12,
   inputTokenDetails: {

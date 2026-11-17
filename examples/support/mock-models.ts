@@ -3,7 +3,7 @@ import { MockLanguageModelV4 } from 'ai/test';
 
 type GenerateResult = Awaited<ReturnType<MockLanguageModelV4['doGenerate']>>;
 
-const OVERLOADED_STATUS = 529;
+const OVERLOADED_STATUS = 503;
 const TEXT_ID = 'text';
 const STOP: GenerateResult['finishReason'] = { unified: 'stop', raw: 'stop' };
 const USAGE: GenerateResult['usage'] = {
@@ -52,7 +52,7 @@ export function answering(
   });
 }
 
-/** A scripted model whose provider answers HTTP 529 to every call. */
+/** A scripted model whose provider answers HTTP 503, which `isOverloadedError` recognizes, to every call. */
 export function overloadedModel(modelId: string): MockLanguageModelV4 {
   return new MockLanguageModelV4({
     modelId,

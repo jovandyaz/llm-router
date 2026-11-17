@@ -57,4 +57,8 @@ const answer = await executeWithChain(
 
 assert.deepEqual(candidates, [PRIMARY, FALLBACK]);
 assert.equal(answer, 'Hello from OpenAI');
-assert.ok(warnings.length > 0, 'the failed attempt is logged');
+assert.partialDeepStrictEqual(warnings, [
+  { event: 'ai.chain.step_failed', model: PRIMARY, nextModel: FALLBACK },
+]);
+assert.equal(models[PRIMARY].doGenerateCalls.length, 1);
+assert.equal(models[FALLBACK].doGenerateCalls.length, 1);
