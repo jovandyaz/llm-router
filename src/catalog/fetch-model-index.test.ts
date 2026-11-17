@@ -39,8 +39,15 @@ describe('fetchModelIndex', () => {
       },
     });
     expect(requested).toEqual([DEFAULT_MODEL_INDEX_URL]);
-    expect(DEFAULT_MODEL_INDEX_URL).toMatch(
-      /^https:\/\/cdn\.jsdelivr\.net\/npm\/@jovandyaz\/llm-router@\d+\.\d+\/data\/model-index\.json$/
+  });
+
+  it('default URL tracks the package major.minor', () => {
+    const { version } = JSON.parse(
+      readFileSync(resolve(import.meta.dirname, '../../package.json'), 'utf8')
+    ) as { version: string };
+    const [major, minor] = version.split('.');
+    expect(DEFAULT_MODEL_INDEX_URL).toBe(
+      `https://cdn.jsdelivr.net/npm/@jovandyaz/llm-router@${major}.${minor}/data/model-index.json`
     );
   });
 
