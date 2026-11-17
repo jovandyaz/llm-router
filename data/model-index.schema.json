@@ -181,8 +181,7 @@
                 "required": [
                   "levels",
                   "mandatory"
-                ],
-                "additionalProperties": false
+                ]
               },
               {
                 "type": "null"
@@ -241,8 +240,7 @@
           "openWeights",
           "retiresAt",
           "source"
-        ],
-        "additionalProperties": false
+        ]
       }
     }
   },
@@ -251,6 +249,5 @@
     "generatedAt",
     "sources",
     "models"
-  ],
-  "additionalProperties": false
+  ]
 }

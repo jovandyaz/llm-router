@@ -15,7 +15,7 @@ It makes no network calls and imports no provider SDK. You pass the model call i
 npm install @jovandyaz/llm-router
 ```
 
-ESM-only, Node.js 22.12 or later. CommonJS code can still `require()` it: Node loads ES modules synchronously from `require()` since 22.12. Runtime dependencies: `zod` and `gpt-tokenizer`.
+ESM-only, Node.js 22.12 or later. CommonJS code can still `require()` it: Node loads ES modules synchronously from `require()` since 22.12. On Node 22.12.x the first such `require()` in a process prints an `ExperimentalWarning: CommonJS module … is loading ES Module … using require()`; from 22.13 on it is silent. Runtime dependencies: `zod` and `gpt-tokenizer`.
 
 Each area has its own entry point, so you load only what you use: `@jovandyaz/llm-router/chain`, `/catalog`, `/guard` and `/tokens`. Importing the chain never loads the tokenizer or the model snapshot. The root `@jovandyaz/llm-router` re-exports all four and loads everything. TypeScript projects on `moduleResolution: node` resolve the subpaths through `typesVersions`.
 
