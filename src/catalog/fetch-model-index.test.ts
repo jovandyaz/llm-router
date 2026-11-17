@@ -50,6 +50,22 @@ describe('fetchModelIndex', () => {
     ).rejects.toThrow(`${URL} failed: HTTP 503`);
   });
 
+  it('cancels the body of a non-2xx response', async () => {
+    let cancelled = false;
+    const body = new ReadableStream({
+      cancel() {
+        cancelled = true;
+      },
+    });
+    await expect(
+      fetchModelIndex({
+        url: URL,
+        fetch: async () => new Response(body, { status: 503 }),
+      })
+    ).rejects.toThrow(`${URL} failed: HTTP 503`);
+    expect(cancelled).toBe(true);
+  });
+
   it('throws when the body breaks the schema', async () => {
     await expect(
       fetchModelIndex({

@@ -38,6 +38,8 @@ export async function fetchModelIndex(
 
   const response = await fetchFn(url, { signal });
   if (!response.ok) {
+    // Release the connection now instead of leaving the unread body to garbage collection.
+    await response.body?.cancel();
     throw new Error(
       `Model index request to ${url} failed: HTTP ${response.status}`
     );
