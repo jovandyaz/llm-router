@@ -9,7 +9,11 @@ import {
   type IndexedModel,
 } from './indexed-model';
 
-/** Bumped whenever a change to the document shape would break a reader of the previous one. */
+/**
+ * Bumped when a change would break a reader of the previous version: removing, renaming or
+ * retyping a field. Adding a field keeps the version; readers ignore fields they do not know,
+ * and the published JSON Schema allows them.
+ */
 export const MODEL_INDEX_SCHEMA_VERSION = 1;
 
 /** The model index as published in `data/model-index.json`. Costs are USD per token. */
@@ -76,7 +80,7 @@ export const MODEL_INDEX_SNAPSHOT_DATE: string = snapshot.generatedAt;
 
 /** `data/model-index.schema.json`, as `scripts/write-model-index-schema.ts` writes it. */
 export function renderModelIndexSchema(): string {
-  return `${JSON.stringify(z.toJSONSchema(modelIndexDocumentSchema), null, 2)}\n`;
+  return `${JSON.stringify(z.toJSONSchema(modelIndexDocumentSchema, { io: 'input' }), null, 2)}\n`;
 }
 
 /** `data/model-index.json`, one row per line so refresh diffs stay readable. */

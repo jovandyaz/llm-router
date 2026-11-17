@@ -39,8 +39,15 @@ describe('fetchModelIndex', () => {
       },
     });
     expect(requested).toEqual([DEFAULT_MODEL_INDEX_URL]);
-    expect(DEFAULT_MODEL_INDEX_URL).toMatch(
-      /^https:\/\/cdn\.jsdelivr\.net\/npm\/@jovandyaz\/llm-router@\d+\.\d+\/data\/model-index\.json$/
+  });
+
+  it('default URL tracks the package major.minor', () => {
+    const { version } = JSON.parse(
+      readFileSync(resolve(import.meta.dirname, '../../package.json'), 'utf8')
+    ) as { version: string };
+    const [major, minor] = version.split('.');
+    expect(DEFAULT_MODEL_INDEX_URL).toBe(
+      `https://cdn.jsdelivr.net/npm/@jovandyaz/llm-router@${major}.${minor}/data/model-index.json`
     );
   });
 
@@ -49,6 +56,56 @@ describe('fetchModelIndex', () => {
       fetchModelIndex({ url: URL, fetch: respondWith('busy', 503) })
     ).rejects.toThrow(`${URL} failed: HTTP 503`);
   });
+
+  it('cancels the body of a non-2xx response', async () => {
+    let cancelled = false;
+    const body = new ReadableStream({
+      cancel() {
+        cancelled = true;
+      },
+    });
+    await expect(
+      fetchModelIndex({
+        url: URL,
+        fetch: async () => new Response(body, { status: 503 }),
+      })
+    ).rejects.toThrow(`${URL} failed: HTTP 503`);
+    expect(cancelled).toBe(true);
+  });
+
+  it('keeps the HTTP error when the failed body is already locked', async () => {
+    const response = new Response('busy', { status: 503 });
+    response.body?.getReader();
+    await expect(
+      fetchModelIndex({ url: URL, fetch: async () => response })
+    ).rejects.toThrow(`${URL} failed: HTTP 503`);
+  });
+
+  it('keeps the HTTP error when the failed body has errored', async () => {
+    const body = new ReadableStream({
+      start(controller) {
+        controller.error(new Error('connection reset'));
+      },
+    });
+    await expect(
+      fetchModelIndex({
+        url: URL,
+        fetch: async () => new Response(body, { status: 503 }),
+      })
+    ).rejects.toThrow(`${URL} failed: HTTP 503`);
+  });
+
+  it('does not wait for a body cancel that never settles', async () => {
+    const body = new ReadableStream({
+      cancel: () => new Promise<void>(() => undefined),
+    });
+    await expect(
+      fetchModelIndex({
+        url: URL,
+        fetch: async () => new Response(body, { status: 503 }),
+      })
+    ).rejects.toThrow(`${URL} failed: HTTP 503`);
+  }, 1_000);
 
   it('throws when the body breaks the schema', async () => {
     await expect(

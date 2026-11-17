@@ -1,4 +1,8 @@
-import type { ModelIndexDocument } from '../src/catalog';
+import {
+  parseModelIndexDocument,
+  type ModelIndexDocument,
+} from '../src/catalog';
+import { renderModelIndexDocument } from '../src/catalog/model-index-document';
 
 const PACKAGE_NAME = '@jovandyaz/llm-router';
 
@@ -23,5 +27,28 @@ export function changesetFor(document: ModelIndexDocument): Changeset {
   return {
     fileName: `refresh-model-index-${document.generatedAt}.md`,
     content: `---\n'${PACKAGE_NAME}': patch\n---\n\nRefresh the bundled model index (${document.models.length} models, generated ${document.generatedAt}).\n`,
+  };
+}
+
+export interface PreparedRefresh {
+  readonly json: string;
+  readonly changeset: Changeset;
+}
+
+/**
+ * What a refresh should write, or `null` when no row changed. Validates `next` first and throws a
+ * `ZodError` on a row that breaks the schema, so a bad document is never written.
+ */
+export function prepareRefresh(
+  previous: ModelIndexDocument | null,
+  next: ModelIndexDocument
+): PreparedRefresh | null {
+  if (!modelsChanged(previous, next)) {
+    return null;
+  }
+  const document = parseModelIndexDocument(next);
+  return {
+    json: renderModelIndexDocument(document),
+    changeset: changesetFor(document),
   };
 }

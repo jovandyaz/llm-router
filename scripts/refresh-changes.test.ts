@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { MODEL_INDEX_SNAPSHOT } from '../src/catalog';
+import { z } from 'zod';
+
+import { MODEL_INDEX_SNAPSHOT, parseModelIndexDocument } from '../src/catalog';
 import type { ModelIndexDocument } from '../src/catalog';
-import { changesetFor, modelsChanged } from './refresh-changes';
+import { changesetFor, modelsChanged, prepareRefresh } from './refresh-changes';
 
 const current: ModelIndexDocument = {
   schemaVersion: 1,
@@ -48,5 +50,39 @@ describe('changesetFor', () => {
     expect(changeset.content).toBe(
       "---\n'@jovandyaz/llm-router': patch\n---\n\nRefresh the bundled model index (3 models, generated 2026-11-16).\n"
     );
+  });
+});
+
+describe('prepareRefresh', () => {
+  it('returns null when only the date moved', () => {
+    expect(
+      prepareRefresh(current, { ...current, generatedAt: '2026-11-16' })
+    ).toBeNull();
+  });
+
+  it('throws on a row that breaks the schema', () => {
+    const [first, ...rest] = current.models;
+    if (first === undefined) {
+      throw new Error('the snapshot has no models');
+    }
+    const broken = {
+      ...current,
+      models: [{ ...first, inputCostPerToken: -1 }, ...rest],
+    };
+    expect(() => prepareRefresh(current, broken)).toThrow(z.ZodError);
+  });
+
+  it('returns the rendered document and a patch changeset', () => {
+    const next = {
+      ...current,
+      generatedAt: '2026-11-16',
+      models: current.models.slice(1),
+    };
+    const prepared = prepareRefresh(current, next);
+    expect(prepared).not.toBeNull();
+    expect(parseModelIndexDocument(JSON.parse(prepared?.json ?? ''))).toEqual(
+      next
+    );
+    expect(prepared?.changeset).toEqual(changesetFor(next));
   });
 });

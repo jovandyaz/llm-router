@@ -1,11 +1,16 @@
+import { version } from '../../package.json' with { type: 'json' };
 import {
   parseModelIndexDocument,
   type ModelIndexDocument,
 } from './model-index-document';
 
-/** The index shipped by the latest published 0.2.x release, served by jsDelivr from npm. */
-export const DEFAULT_MODEL_INDEX_URL =
-  'https://cdn.jsdelivr.net/npm/@jovandyaz/llm-router@0.2/data/model-index.json';
+const RELEASE_LINE = version.split('.').slice(0, 2).join('.');
+
+/**
+ * The index of the latest published release on this package's minor line (e.g. `@0.2` resolves to
+ * the newest 0.2.x), served by jsDelivr from npm. Follows the package version on its own.
+ */
+export const DEFAULT_MODEL_INDEX_URL = `https://cdn.jsdelivr.net/npm/@jovandyaz/llm-router@${RELEASE_LINE}/data/model-index.json`;
 
 const DEFAULT_TIMEOUT_MS = 10_000;
 
@@ -38,6 +43,9 @@ export async function fetchModelIndex(
 
   const response = await fetchFn(url, { signal });
   if (!response.ok) {
+    // Release the connection instead of leaving the unread body to garbage collection. Best effort:
+    // not awaited and never thrown, so a locked, errored or stuck body cannot replace the HTTP error.
+    response.body?.cancel().catch(() => undefined);
     throw new Error(
       `Model index request to ${url} failed: HTTP ${response.status}`
     );
